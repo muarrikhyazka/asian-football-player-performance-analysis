@@ -3,12 +3,11 @@ import streamlit as st
 from PIL import Image
 from bokeh.models.widgets import Div
 import plotly.express as px
-import nltk
 import graphviz
 import base64
 
 
-title = 'Time Series Forecasting of Spotify Stock Price'
+title = 'Asian Football Player Performance on Top Leagues'
 
 
 
@@ -55,11 +54,12 @@ with open(file_name) as f:
 # Content
 @st.cache
 def load_data():
-    df_raw = pd.read_csv(r'data/internet_service_churn.csv')
+    df_raw = pd.read_csv(r'data/data_for_streamlit.csv', sep=';')
     df = df_raw.copy()
     return df_raw, df
 
 df_raw, df = load_data()
+df_merged = df_raw.copy()
 
 def render_svg(svg):
     """Renders the given svg string."""
@@ -114,27 +114,35 @@ st.title(title)
 st.subheader('Business Understanding')
 st.write(
     """
-    Stock price change of company are very fast. We can get high profit if we can buy and sell on the best timing.
-    Stock price forecasting is very important tools to get high profit so we can know when is the best time to buy and sell.
+    As a football fans, this project really enjoys me a lot. 
     """
 )
 
 st.write(
     """
-    In this case, I take Spotify or in code SPOT. There is no specific scientific reason why choose it, I just love the company and the product. Hope someday will be there.
+    Back to topic, I just want to see the Asian football player performance in top leagues. They are Premiere League, Serie A, La Liga, Ligue 1, and Bundesliga.
+    As topping, there is comparison Asian player with other continent player, mainly European player.
     """
 )
 
 st.subheader('Data Understanding')
 st.write(
     """
-    **Source : Take it from yfinance API, you can see on the notebook how I gotten it**
+    **Source :**
+    \n 1. Take it from Kaggle, here is the [link](https://www.kaggle.com/datasets/vivovinco/20222023-football-player-stats)
+    \n 2. Nation Code [link](https://datahub.io/core/country-codes)
     """
 )
 
 st.write(
     """
-    **Below is sample of the data.** 
+    **In there, there full description of each column. But, I will provide below only columns which I used.**
+    """
+)
+
+st.write(
+    """
+    **Below is sample of the data, after merged.** 
     """
 )
 
@@ -142,69 +150,235 @@ st.dataframe(df.sample(5))
 
 st.write(
     """
-    **Below is my understanding about each column**
-    Open :
-    Close : 
+    **Description of each column**
+    \nPlayer : Player's name
+    \nNation : Player's nation
+    \nPos : Position 
+    \nAge : Player's age
+    \nMin : Minutes played
+    \nGoals : Goals scored or allowed
+    \nSoT% : Shots on target percentage (Does not include penalty kicks)
+    \nPasTotCmp% : Pass completion percentage
+    \nAssists : Assists
+    \nScaDrib : Successful dribbles that lead to a shot attempt
+    \nInt : Interceptions
+    \nTklDri% : Percentage of dribblers tackled
+    \nBlocks : Number of times blocking the ball by standing in its path
+    \nInt : Interceptions
+    \nClr : Clearances
+    \nAerWon% : Percentage of aerials won
+    \nRegion Name : Player's Continent Name
+    \nofficial_name_es : Player's nation full name
+
     """
 )
 
 st.subheader('Method')
 st.write(
     """
-    Used LSTM Neural Network
+    Just do simple exploratory data analysis by using some visualizations.
     """
 )
 
-st.write("""
-    **Flowchart**
-""")
-
-graph = graphviz.Digraph()
-graph.edge('EDA', 'Assumption Test')
-graph.edge('Assumption Test', 'Data Preprocessing')
-graph.edge('Data Preprocessing', 'Modeling')
-graph.edge('Modeling', 'Evaluation')
-
-
-
-st.graphviz_chart(graph)
 
 
 
 st.subheader('Insights')
 st.write(
     """
-    I calculated word frequency and see on top 10 in unigram and bigram. Try to see all chart combination between sentiment and category and will show you which has insight.
+    My first boundary is only on Asian player. After that, compare to other continent player. Here is my finding :
     """
 )
 
-## convert to corpus
-top=10
-corpus = df["content_clean"][(df['sentiment']=='NEGATIVE') & (df['predicted_category']=='INTERFACE')]
-lst_tokens = nltk.tokenize.word_tokenize(corpus.str.cat(sep=" "))
+## filter asian player
+df_asia = df_merged[df_merged['Region Name']=='Asia'].copy()
 
-    
-## calculate words bigrams
-dic_words_freq = nltk.FreqDist(nltk.ngrams(lst_tokens, 2))
-dtf_bi = pd.DataFrame(dic_words_freq.most_common(), 
-                      columns=["Word","Freq"])
-dtf_bi["Word"] = dtf_bi["Word"].apply(lambda x: " ".join(
-                   string for string in x) )
-fig_bi = px.bar(dtf_bi.iloc[:top,:].sort_values(by="Freq"), x="Freq", y="Word", orientation='h',
-             hover_data=["Word", "Freq"],
-             height=400,
-             title='Top 10 Bigrams Text')
-st.plotly_chart(fig_bi, use_container_width=True)
+## goals on bar chart
+fig_1 = px.bar(df_asia.sort_values(by = 'Goals', ascending = False), x="Player", y="Goals", barmode="group", text='Goals')
+fig_1.update_traces(textposition="outside")
+st.plotly_chart(fig_1, use_container_width=True)
+
+st.write(
+    """
+    First of all, its a mandatory to see goals number which is reflected the performance of each players. Definitely, it will be dominated by Forward and Midfielder.
+    """
+)
+
+
+## playing time on bar chart plotly
+tks = df_asia.groupby('Player', as_index=False)['Min'].mean().sort_values(by = 'Min', ascending = False)
+fig_2 = px.bar(tks.sort_values(by = 'Min', ascending = False), x="Player", y="Min", barmode="group", text='Min')
+fig_2.update_traces(textposition="outside")
+st.plotly_chart(fig_2, use_container_width=True)
+
+st.write(
+    """
+    Mostly have been trusted to play more than 1 match. I think its good opportunity for asian player in Top European League. Some of them is regular player on each teams.
+    """
+)
+
+## top 10 playing time on plotly viz
+fig_3 = px.bar(tks.nlargest(10, 'Min').sort_values(by = 'Min', ascending = False), x="Player", y="Min", barmode="group", text='Min')
+fig_3.update_traces(textposition="outside")
+st.plotly_chart(fig_3, use_container_width=True)
+
+st.write(
+    """
+    Just want to highlight, here they are 10 which have the most playing time. Are your idol in there?.
+    """
+)
+
+## age on plotly viz
+fig_4 = px.bar(df_asia.sort_values(by = 'Age', ascending = False), x="Player", y="Age", barmode="group", text='Age')
+fig_4.update_traces(textposition="outside")
+st.plotly_chart(fig_4, use_container_width=True)
+
+st.write(
+    """
+    They are on every generation, I think its a good regeneration of asian player in Europe.
+    """
+)
+
+## player number by nationality
+nation = df_asia.groupby('official_name_es', as_index=False)['Player'].count().sort_values(by = 'Player', ascending = False)
+fig_5 = px.bar(nation, y='Player', x='official_name_es', title = 'Nationality', text='Player')
+fig_5.update_traces(textposition="outside")
+st.plotly_chart(fig_5, use_container_width=True)
+
+st.write(
+    """
+    Top 3 on Turkey, Japan, and South Korea.
+    """
+)
+
+st.write(
+    """
+    **After this, I want to compare asian player with other continent player per position.**
+    Before that, lets see the distribution of position
+    """
+)
+
+## position distribution
+pos = df_asia.groupby('Pos', as_index=False)['Player'].count().sort_values(by = 'Player', ascending = False)
+fig_6 = px.pie(pos, values='Player', names='Pos', title = 'Position')
+st.plotly_chart(fig_6, use_container_width=True)
+
+st.write(
+    """
+    Mostly on Forward and Defender.
+    """
+)
+
+
+st.write(
+    """
+    Here they are the comparison
+    \n**FORWARD**
+    """
+)
+
+df_all_forward = df_merged[df_merged['Pos'].str.contains('FW')].copy()
+forward_metrics = ['Goals', 'SoT%', 'Assists', 'AerWon%']
+df_group_forward = df_all_forward.groupby('Region Name', as_index=False)[forward_metrics].mean()
+for metrics in forward_metrics:
+    df_group_forward[metrics] = round(df_group_forward[metrics], 2)
+    fig = px.bar(df_group_forward.sort_values(by = metrics, ascending = False), 
+                 x="Region Name", 
+                 y=metrics, 
+                 barmode="group", 
+                 title = metrics, 
+                 width=800, 
+                 height=600,
+                 text= metrics)
+    fig.update_traces(textposition="outside")
+    st.plotly_chart(fig, use_container_width=True)
+
+st.write(
+    """
+    Asian player is dominating compared to other continent player on all metrics.
+    """
+)
+
+
+st.write(
+    """
+    **MIDFIELDER**
+    """
+)
+
+df_all_midfielder = df_merged[df_merged['Pos'].str.contains('MF')].copy()
+midfielder_metrics = ['PasTotCmp%', 'Assists', 'ScaDrib']
+df_group_midfielder = df_all_midfielder.groupby('Region Name', as_index=False)[midfielder_metrics].mean()
+for metrics in midfielder_metrics:
+    df_group_midfielder[metrics] = round(df_group_midfielder[metrics], 2)
+    fig = px.bar(df_group_midfielder.sort_values(by = metrics, ascending = False),
+                 x="Region Name", 
+                 y=metrics, 
+                 barmode="group", 
+                 title = metrics, 
+                 width=800, 
+                 height=600,
+                 text= metrics)
+    fig.update_traces(textposition="outside")
+    st.plotly_chart(fig, use_container_width=True)
+
+st.write(
+    """
+    As of now, there is no good midfielder from Asia, if compare to other.
+    """
+)
+
+st.write(
+    """
+    **DEFENDER**
+    """
+)
+
+df_all_defender = df_merged[df_merged['Pos'].str.contains('DF')].copy()
+defender_metrics = ['Blocks', 'TklDri%', 'Int', 'Clr', 'AerWon%']
+df_group_defender = df_all_defender.groupby('Region Name', as_index=False)[defender_metrics].mean()
+for metrics in defender_metrics:
+    df_group_defender[metrics] = round(df_group_defender[metrics], 2)
+    fig = px.bar(df_group_defender.sort_values(by = metrics, ascending = False), 
+                 x="Region Name", 
+                 y=metrics, 
+                 barmode="group", 
+                 title = metrics, 
+                 width=800, 
+                 height=600,
+                 text= metrics)
+    fig.update_traces(textposition="outside")
+    st.plotly_chart(fig, use_container_width=True)
+
+st.write(
+    """
+    On Defender metrics, asian players are only good at Interception and Clearance.
+    """
+)
+
+st.write(
+    """
+    **GOALKEEPER**
+    """
+)
+st.write(
+    """
+    **There is no viz per metrics, bcs there is no metrics which is related with goalkeeper**
+    """
+)
+
+
+
+
+
+
 
 st.write("""
-    We can see here, its combination between negative sentiment and interface category. 
-    It shows us that interface in TV is needed to be improved because android tv was mentioned sometimes. 
-    Many other words which is related to TV such as mi Box (Xiaomi set top box for TV), dolby digital (sound in smart tv), and nvidia shield (android tv-based digital media player).
-    It indicates that Netflix should prioritize to improve their app in TV. 
-    Furthermore, in detail many complaints for voice search feature, so It should be attention to start.
+    Lastly, We can conclude that asian player can compete with other continent player even european player. They are mostly still on green age so can grow up many more. 
+    From the data, Turkey, Japan, and South Korea can make a hard game with top European country team in world cup in the meantime.
 """)
 
 c1, c2 = st.columns(2)
 with c1:
-    st.info('**[Github Repo](https://github.com/muarrikhyazka/internet-service-provider-churn-prediction)**', icon="🍣")
+    st.info('**[Github Repo](https://github.com/muarrikhyazka/asian-football-player-performance-analysis)**', icon="🍣")
 
