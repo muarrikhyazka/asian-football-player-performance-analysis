@@ -89,13 +89,15 @@ with st.sidebar:
     st.write('\n')
 
     if st.button('🏠 HOME'):
-        js = "window.location.href = 'https://muarrikhyazka.github.io'"  # Current tab
+        # js = "window.location.href = 'http://www.muarrikhyazka.com'"  # Current tab
+        js = "window.open('http://www.muarrikhyazka.com')"
         html = '<img src onerror="{}">'.format(js)
         div = Div(text=html)
         st.bokeh_chart(div)
 
     if st.button('🍱 GITHUB'):
-        js = "window.location.href = 'https://github.com/muarrikhyazka'"  # Current tab
+        # js = "window.location.href = 'https://www.github.com/muarrikhyazka'"  # Current tab
+        js = "window.open('https://www.github.com/muarrikhyazka')"
         html = '<img src onerror="{}">'.format(js)
         div = Div(text=html)
         st.bokeh_chart(div)
@@ -109,6 +111,13 @@ with st.sidebar:
 
 st.title(title)
 
+st.write(
+    """
+    \n
+    \n
+    \n
+    """
+)
 
 st.subheader('Business Understanding')
 st.write(
@@ -124,6 +133,14 @@ st.write(
     """
 )
 
+st.write(
+    """
+    \n
+    \n
+    \n
+    """
+)
+
 st.subheader('Data Understanding')
 st.write(
     """
@@ -133,11 +150,6 @@ st.write(
     """
 )
 
-st.write(
-    """
-    **In there, there full description of each column. But, I will provide below only columns which I used.**
-    """
-)
 
 st.write(
     """
@@ -146,6 +158,12 @@ st.write(
 )
 
 st.dataframe(df.sample(5))
+
+st.write(
+    """
+    **In [Kaggle](https://www.kaggle.com/datasets/vivovinco/20222023-football-player-stats), there is full description of each columns. But, I will provide below only columns which I used.**
+    """
+)
 
 st.write(
     """
@@ -172,6 +190,14 @@ st.write(
     """
 )
 
+st.write(
+    """
+    \n
+    \n
+    \n
+    """
+)
+
 st.subheader('Method')
 st.write(
     """
@@ -180,7 +206,13 @@ st.write(
 )
 
 
-
+st.write(
+    """
+    \n
+    \n
+    \n
+    """
+)
 
 st.subheader('Insights')
 st.write(
@@ -294,7 +326,7 @@ for metrics in forward_metrics:
 
 st.write(
     """
-    Asian player is dominating compared to other continent player on all metrics.
+    Asian forward player is dominating compared to other continent forward player on all metrics.
     """
 )
 
@@ -362,7 +394,7 @@ st.write(
 )
 st.write(
     """
-    **There is no viz per metrics, bcs there is no metrics which is related with goalkeeper**
+    **There is no viz per metrics, bcs there is no metrics which is related with goalkeeper.**
     """
 )
 
@@ -376,6 +408,14 @@ st.write("""
     Lastly, We can conclude that asian player can compete with other continent player even european player. They are mostly still on green age so can grow up many more. 
     From the data, Turkey, Japan, and South Korea can make a hard game with top European country team in world cup in the meantime.
 """)
+
+st.write(
+    """
+    \n
+    \n
+    \n
+    """
+)
 
 c1, c2 = st.columns(2)
 with c1:
